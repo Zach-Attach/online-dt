@@ -11,7 +11,6 @@ import pickle
 import random
 import time
 import gym
-import d4rl
 import torch
 import numpy as np
 
@@ -86,7 +85,7 @@ class Experiment:
         self.online_iter = 0
         self.total_transitions_sampled = 0
         self.variant = variant
-        self.reward_scale = 1.0 if "antmaze" in variant["env"] else 0.001
+        self.reward_scale = 0.001
         self.logger = Logger(variant)
 
     def _get_env_spec(self, variant):
@@ -387,8 +386,6 @@ class Experiment:
 
         utils.set_seed_everywhere(args.seed)
 
-        import d4rl
-
         def loss_fn(
             a_hat_dist,
             a,
@@ -409,7 +406,6 @@ class Experiment:
 
         def get_env_builder(seed, env_name, target_goal=None):
             def make_env_fn():
-                import d4rl
 
                 env = gym.make(env_name)
                 env.seed(seed)
@@ -431,13 +427,7 @@ class Experiment:
 
         print("\n\nMaking Eval Env.....")
         env_name = self.variant["env"]
-        if "antmaze" in env_name:
-            env = gym.make(env_name)
-            target_goal = env.target_goal
-            env.close()
-            print(f"Generated the fixed target goal: {target_goal}")
-        else:
-            target_goal = None
+        target_goal = None
         eval_envs = SubprocVecEnv(
             [
                 get_env_builder(i, env_name=env_name, target_goal=target_goal)
